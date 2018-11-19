@@ -3,9 +3,13 @@ import torch, torchvision
 import cifar10.models.vgg as vgg
 import cifar10.models.resnet as resnet
 import cifar10.models.densenet as densenet
+import cifar10.models.vgg_low as vgg_low
+import cifar10.models.vgg_ours as vgg_ours
 
 # map between model name and function
 models = {
+    'vgg16lp'               : vgg_low.VGG16LP,
+    'vgg16fp'               : vgg_ours.VGG16,
     'vgg9'                  : vgg.VGG9,
     'densenet121'           : densenet.DenseNet121,
     'resnet18'              : resnet.ResNet18,

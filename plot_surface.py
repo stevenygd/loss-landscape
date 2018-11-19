@@ -34,15 +34,15 @@ def name_surface_file(args, dir_file):
     surf_file = dir_file
 
     # resolution
-    surf_file += '_[%s,%s,%d]' % (str(args.xmin), str(args.xmax), int(args.xnum))
+    surf_file += '_%s_%s_%d_' % (str(args.xmin), str(args.xmax), int(args.xnum))
     if args.y:
-        surf_file += 'x[%s,%s,%d]' % (str(args.ymin), str(args.ymax), int(args.ynum))
+        surf_file += 'x_%s_%s_%d_' % (str(args.ymin), str(args.ymax), int(args.ynum))
 
     # dataloder parameters
     if args.raw_data: # without data normalization
         surf_file += '_rawdata'
     if args.data_split > 1:
-        surf_file += '_datasplit=' + str(args.data_split) + '_splitidx=' + str(args.split_idx)
+        surf_file += '_datasplit' + str(args.data_split) + '_splitidx' + str(args.split_idx)
 
     return surf_file + ".h5"
 
@@ -246,7 +246,7 @@ if __name__ == '__main__':
     s = copy.deepcopy(net.state_dict()) # deepcopy since state_dict are references
     if args.ngpu > 1:
         # data parallel with multiple GPUs on a single node
-        net = nn.DataParallel(net, device_ids=range(torch.cuda.device_count()))
+        net = nn.DataParallel(net, device_ids=range(min(args.ngpu, torch.cuda.device_count())))
 
     #--------------------------------------------------------------------------
     # Setup the direction file and the surface file
