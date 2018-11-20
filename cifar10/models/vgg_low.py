@@ -4,6 +4,7 @@
 """
 
 import math
+import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
 from .quantizer import BlockQuantizer, FixedQuantizer, DynamicFixedQuantizer
@@ -38,17 +39,22 @@ cfg = {
          512, 512, 512, 512, 'M'],
 }
 
-class VGG(nn.Module):
-    def __init__(self, wl_activate=8, fl_activate=8, wl_error=8, fl_error=8, layer_type="fixed", quant_type="stochastic",
+class VGG16LP(nn.Module):
+
+    def __init__(self, wl_activate=8, fl_activate=8, wl_error=8, fl_error=8, layer_type="block", quant_type="stochastic",
                  quantize_backward=False, num_classes=10, depth=16, batch_norm=False, writer=None):
+        super(VGG16LP, self).__init__()
         assert layer_type in ["block", "fixed"]
         assert quant_type in ["nearest", "stochastic"]
         if layer_type == "block":
             quant = lambda name : BlockQuantizer(wl_activate, wl_error, "stochastic", quantize_backward)
+            self.w_quant = BlockQuantizer(wl_activate, wl_error, "stochastic", quantize_backward)
         elif layer_type == "fixed":
             quant = lambda name : FixedQuantizer(wl_activate, fl_activate, "stochastic", quantize_backward)
+            self.w_quant = FixedQuantizer(wl_activate, fl_activate, "stochastic", quantize_backward)
+        else:
+            raise Exception("Invalid layer-type:%s"%layer_type)
 
-        super(VGG, self).__init__()
         self.features = make_layers(cfg[depth], quant, batch_norm)
         self.classifier = nn.Sequential(
             nn.Dropout(),
@@ -73,35 +79,9 @@ class VGG(nn.Module):
         x = self.classifier(x)
         return x
 
+    def eval(self):
+        # with torch.no_grad():
+        #     for p in self.parameters():
+        #         p.data = self.w_quant(p.data)
+        return super(VGG16LP, self).eval()
 
-class Base(VGG):
-    base = VGG
-    args = list()
-    kwargs = dict()
-    transform_train = transforms.Compose([
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomCrop(32, padding=4),
-        transforms.ToTensor(),
-        transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
-    ])
-
-    transform_test = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
-    ])
-
-
-class VGG16LP(Base):
-    pass
-
-
-class VGG16BNLP(Base):
-    kwargs = {'batch_norm': True}
-
-
-class VGG19LP(Base):
-    kwargs = {'depth': 19}
-
-
-class VGG19BNLP(Base):
-    kwargs = {'depth': 19, 'batch_norm': True}

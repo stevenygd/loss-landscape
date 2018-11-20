@@ -196,7 +196,6 @@ if __name__ == '__main__':
     parser.add_argument('--show', action='store_true', default=False, help='show plots')
 
     args = parser.parse_args()
-
     if exists(args.surf_file) and exists(args.proj_file) and exists(args.dir_file):
         plot_contour_trajectory(args.surf_file, args.dir_file, args.proj_file,
                                 args.surf_name, args.vmin, args.vmax, args.vlevel, args.show)
