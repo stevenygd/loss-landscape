@@ -6,7 +6,7 @@ from torch.autograd import Variable
 import numpy as np
 import math
 
-R = torch.rand(int(1e8)).cuda()
+# R = torch.rand(int(1e8)).cuda()
 
 def _quantize_log(x, wl, fsr, base=math.sqrt(2)):
     sign  = torch.sign(x)
@@ -42,9 +42,11 @@ class LogQuant(torch.autograd.Function):
 def add_r_(data):
     size = 1
     for n in data.size(): size *= n
-    start = np.random.randint(0, R.size(0)-size-1)
-    r = R[start:start+size]
-    r = r.view_as(data)
+    # start = np.random.randint(0, R.size(0)-size-1)
+    # r = R[start:start+size]
+    # r = r.view_as(data)
+
+    r = torch.cuda.FloatTensor(data.size()).uniform_()
     data.add_(r)
 
 def _round(data, sigma, t_min, t_max, mode, clip=True):
